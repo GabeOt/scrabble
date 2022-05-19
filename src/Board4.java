@@ -145,18 +145,12 @@ public class Board4 {
 
         @Override
         public void paintComponent(Graphics g){
-            if (isHorizontal){
             for(int row = 0; row <N_ROWS; row++) {
                 for (int col = 0; col <N_COLS; col++){
                     grid[row][col].paint(g);
                 }
             }
-            }
-            if (!(isHorizontal)){
-                for (int col; col <N_COLS; col++){
-                    for
-                }
-            }
+
             for(String label : keys.keySet()){
                 keys.get(label).paint(g);
             }
@@ -274,8 +268,13 @@ public class Board4 {
                 letter = Character.toUpperCase(letter);
                 if (letter == DELETE) {
                     showMessage("");
-                    if (row < N_ROWS && col > 0) {
+                    if (row < N_ROWS && col > 0 && isHorizontal) {
                         col--;
+                        grid[row][col].setLetter(" ");
+                        repaint();
+                    }
+                    if (row < N_ROWS && col > 0 && !isHorizontal) {
+                        row--;
                         grid[row][col].setLetter(" ");
                         repaint();
                     }
@@ -289,7 +288,15 @@ public class Board4 {
                         }
                         listener.eventAction(s);
                     }
-                } else if (Character.isLetter(letter)) {
+                }
+                else if (letter == TURN) {
+                    isHorizontal = !isHorizontal;
+                    showMessage("");
+                    if (row < N_ROWS && col < N_COLS){
+                        grid[row][col].setLetter("");
+                    }
+                }
+                else if (Character.isLetter(letter)) {
                     showMessage("");
                     if (row < N_ROWS && col < N_COLS) {
                         grid[row][col].setLetter("" + letter);
@@ -297,9 +304,7 @@ public class Board4 {
                         repaint();
                     }
                 }
-                else if (letter == TURN) {
-                    isHorizontal = !isHorizontal;
-                }
+
             }
 
             private String findKey (int x, int y) {
@@ -310,8 +315,6 @@ public class Board4 {
                 }
                 return null;
             }
-
-
 
             class ScrabbleSquare{
 
@@ -458,7 +461,7 @@ public class Board4 {
 
         public static final int DELETE = (char) 8;
         public static final int ENTER = (char) 10;
-        public static final int TURN = (char) 12;
+        public static final int TURN = (char) 50;
 
         public static final String SQUARE_FONT = "Helvetica Neue-bold-38";
         public static final String MESSAGE_FONT = "Helvetica Neue-bold-20";
@@ -469,7 +472,7 @@ public class Board4 {
                 {"Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"},
                 {"A", "S", "D", "F", "G", "H", "J", "K", "L"},
                 {"ENTER", "Z", "X", "C", "V", "B", "N", "M", "DELETE"},
-                {"TURN"}
+                {"2"}
         };
 
         public static final int SQUARE_DELTA = SQUARE_SIZE + SQUARE_SEP;
