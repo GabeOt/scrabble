@@ -10,6 +10,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import javax.swing.JFrame;
 import javax.swing.JComponent;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -173,7 +174,11 @@ public class Board4 {
 
         @Override
         public void keyTyped(KeyEvent e){
-            keyAction(e.getKeyChar());
+            try {
+                keyAction(e.getKeyChar());
+            } catch (FileNotFoundException ex) {
+                ex.printStackTrace();
+            }
 
         }
 
@@ -183,7 +188,7 @@ public class Board4 {
             int a = 0;
             int c = e.getX();
             int d =e.getY();
-            System.out.println(c + " " + d);
+//            System.out.println(c + " " + d);
             String key = findKey(e.getX(), e.getY());
             if (key!= null){
                 char ch = key.charAt(0);
@@ -193,7 +198,11 @@ public class Board4 {
                 else if (key.equals("ENTER")){
                     ch = ENTER;
                 }
-                keyAction(ch);
+                try {
+                    keyAction(ch);
+                } catch (FileNotFoundException ex) {
+                    ex.printStackTrace();
+                }
             }
             else if ((521 <= c) && (c <= 1379)){
                 if((32 <= d) && (d <= 890)){
@@ -201,7 +210,17 @@ public class Board4 {
                     a = (int)((d-32)/41);
                     row = a;
                     col = b;
+                }
+            }
 
+            if (!isHorizontal){
+                if(!(grid[row-1][col].getLetter().equals(""))){
+                    formWord += grid[row-1][col].getLetter();
+                }
+            }
+            if(isHorizontal){
+                if(!(grid[row][col-1].getLetter().equals(""))){
+                    formWord += grid[row-1][col].getLetter();
                 }
             }
 
@@ -264,10 +283,18 @@ public class Board4 {
             }
         }
 
-            private void keyAction(char letter){
+            private void keyAction(char letter) throws FileNotFoundException {
                 letter = Character.toUpperCase(letter);
+                if (letter == TURN) {
+                    isHorizontal = !isHorizontal;
+                    showMessage("");
+                    if (row < N_ROWS && col < N_COLS){
+                        grid[row][col].setLetter("");
+                    }
+                }
                 if (letter == DELETE) {
                     showMessage("");
+                    formWord = formWord.substring(0, formWord.length()-1);
                     if (row < N_ROWS && col > 0 && isHorizontal) {
                         col--;
                         grid[row][col].setLetter(" ");
@@ -281,6 +308,9 @@ public class Board4 {
 
                 } else if (letter == ENTER) {
                     showMessage("");
+                    newWord = formWord;
+                    formWord = "";
+                    System.out.println(newWord);
                     for (ScrabbleEventListener listener : listeners) {
                         String s = "";
                         for (int col = 0; col < N_COLS; col++) {
@@ -288,23 +318,47 @@ public class Board4 {
                         }
                         listener.eventAction(s);
                     }
-                }
-                else if (letter == TURN) {
-                    isHorizontal = !isHorizontal;
-                    showMessage("");
-                    if (row < N_ROWS && col < N_COLS){
-                        grid[row][col].setLetter("");
+                    if (checkWord(newWord)){
+                        System.out.println(newWord + " is a word");
+                    }
+                    if (!checkWord(newWord)){
+                        System.out.println(newWord + " is not a word");
                     }
                 }
                 else if (Character.isLetter(letter)) {
                     showMessage("");
-                    if (row < N_ROWS && col < N_COLS) {
+                    formWord += letter;
+                    if (row < N_ROWS && col < N_COLS && isHorizontal) {
                         grid[row][col].setLetter("" + letter);
                         col++;
                         repaint();
                     }
+                    if (row < N_ROWS && col < N_COLS && !isHorizontal) {
+                        grid[row][col].setLetter("" + letter);
+                        row++;
+                        repaint();
+                    }
                 }
 
+            }
+
+            public boolean checkWord(String word) throws FileNotFoundException {
+            ScrabbleHelper sH = new ScrabbleHelper();
+            return sH.foundWord(word);
+            }
+
+            public void deleter(String word){
+            int a = word.length();
+            if (isHorizontal){
+                col--;
+                grid[row][col].setLetter(" ");
+                repaint();
+            }
+            if (!isHorizontal){
+                row--;
+                grid[row][col].setLetter(" ");
+                repaint();
+            }
             }
 
             private String findKey (int x, int y) {
@@ -433,6 +487,7 @@ public class Board4 {
 
         private boolean isHorizontal = true;
 
+
         public static final int N_ROWS = Board4.N_ROWS;
         public static final int N_COLS = Board4.N_COLS;
 
@@ -487,6 +542,9 @@ public class Board4 {
         private ScrabbleSquare[][] grid;
         private int row;
         private int col;
+        private String newWord = "";
+        private String formWord = "";
+        private boolean isFilled = false;
 
         private static Character currentKey = 'a';
         }
